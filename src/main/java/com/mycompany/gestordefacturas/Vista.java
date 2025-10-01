@@ -17,7 +17,7 @@ public class Vista extends javax.swing.JFrame {
      */
     public Vista() {
         initComponents();
-        gf = new GestorDeFacturas(jLabel5);
+        gf = new GestorDeFacturas();
     }
 
     /**
@@ -213,6 +213,11 @@ public class Vista extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new Vista().setVisible(true));
+    }
+
+    public void changeErrorMesage(Boolean error, String message){
+        jLabel5.setText(message);
+        error? jLabel5.setForeground(Color.RED) : jLabel5.setForeground(Color.BLACK);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
