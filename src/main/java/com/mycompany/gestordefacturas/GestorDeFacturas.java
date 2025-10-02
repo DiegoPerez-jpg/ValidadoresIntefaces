@@ -6,7 +6,9 @@ package com.mycompany.gestordefacturas;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JTextField;
@@ -18,7 +20,6 @@ import javax.swing.JTextField;
 public class GestorDeFacturas {
     ArrayList<ValidableObj<?>> validadores; 
     ArrayList<Factura> facturas; 
-    JList lista;
     Vista vista;
     
 
@@ -33,34 +34,57 @@ public class GestorDeFacturas {
             "j1")
 
             );
-        // validadores.add(
-        //     new ValidableObj<String>(
-        //     s -> s != null && s.length() >= 1 && s.length() <= 31,
-        //     "el dia debe ser correcto",
-        //     "diaBoton")
+         validadores.add(
+             new ValidableObj<Integer>(
+             s -> s != null && s >= 1 && s <= 31,
+             "el dia debe ser correcto",
+             "diaBoton")
 
-        //     );
-        // validadores.add(
-        //     new ValidableObj<String>(
-        //     s -> s != null && s.length() >= 1 && s.length() <= 12,
-        //     "el mes debe ser correcto",
-        //     "mesBoton")
+             );
+         validadores.add(
+             new ValidableObj<Integer>(
+             s -> s != null && s >= 1 && s <= 12,
+             "el mes debe ser correcto",
+             "mesBoton")
 
-        //     );
-        // validadores.add(
-        //     new ValidableObj<String>(
-        //     s -> s != null && s.length() >= 1925 && s.length() <= 2025,
-        //     "el año debe ser correcto",
-        //     "añoBoton")
+             );
+         validadores.add(
+             new ValidableObj<Integer>(
+             s -> s != null && s >= 1925 && s <= 2025,
+             "el año debe ser correcto",
+             "añoBoton")
 
-        //     );
-        // validadores.add(
-        //     new ValidableObj<String>(
-        //     s -> s != null && s.length() >= 0,
-        //     "la cantidad debe ser superior a 0",
-        //     "cantidadBoton")
-
-        //     );
+             );
+         
+        validadores.add(
+            new ValidableObj<String>(
+            s -> {
+                try {
+                    Integer.parseInt(s);
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
+                },
+            "la cantidad debe ser un numero",
+            "cantidadBoton"));
+        validadores.add(
+             new ValidableObj<String>(
+             s -> s != null && Integer.parseInt(s) >= 0,
+             "la cantidad debe ser superior a 0",
+             "cantidadBoton"));
+        validadores.add(
+            new ValidableObj<String>(
+            (s) -> facturas.stream().noneMatch(f -> f.asunto.equals(s)),
+            "El asunto no puede repetirse",
+            "j1")
+        );
+        validadores.add(
+                    new ValidableObj<String>(
+                    (s)->{return true;},
+                    "El asunto no puede repetirse",
+                    "empresaBoton")
+                );
     }
     @SuppressWarnings("unchecked")
     public <Q> ValidableObj<Q> searchValidator(String v){
@@ -68,6 +92,13 @@ public class GestorDeFacturas {
                                     .filter(s -> s.id.equals(v))
                                     .findFirst()
                                     .orElse(null);
+        }
+    @SuppressWarnings("unchecked")
+    public <Q> ArrayList<ValidableObj<Q>> searchValidators(String v){
+        return  validadores.stream()
+                                    .filter(s -> s.id.equals(v))
+                                    .map(s -> (ValidableObj<Q>) s)
+                                    .collect(Collectors.toCollection(ArrayList::new));
         }
 
     public Object getResult(String id){
@@ -82,32 +113,33 @@ public class GestorDeFacturas {
                 return;
             }
         }
-        if(!facturas.stream().anyMatch(s->s.asunto.equals(getResult("asuntoBoton")))){
-            vista.changeErrorMesage(true,"Esta factura ya existe");
-            return;
-        }
         vista.changeErrorMesage(false,"Correctamente añadido");
         Fecha fecha = new Fecha(getResult("diaBoton"),getResult("mesBoton"),getResult("añoBoton"));
-        facturas.add(Factura.create(getResult("asuntoBoton"),getResult("cantidadBoton"),fecha,getResult("cantidadBoton")));
+        facturas.add(Factura.create(getResult("j1"),getResult("cantidadBoton"),fecha,getResult("empresaBoton")));
+        updateText();
     }
 
 
-    public Factura buscarFactura(){
-        return facturas.stream().find(f->f.toString().equals(s)).orElse(null);
+    public Factura buscarFactura(String s){
+        return facturas.stream().filter(f->f.toString().equals(s)).findAny().orElse(null);
     }
     public void updateText(){
-        lista.clear();
-        facturas.forEach(lista.add(f->f.toString()));
+        vista.updateText(facturas.stream().map(f->f.toString()).collect(Collectors.toCollection(ArrayList::new)));
     }
 
     public boolean deleteFactura(String s){
         Factura factura = buscarFactura(s);
         if(factura==null){
+            System.out.println(s);
             return false;
         }
         facturas.remove(factura);
         updateText();
         return true;
+    }
+
+    public void changeCondition(String id, Object condition){
+        searchValidators(id).stream().forEach(s->s.condition=condition);
     }
 
     public boolean editarFactura(String s){
@@ -119,7 +151,12 @@ public class GestorDeFacturas {
         updateText();
         JTextField label = null;
         //repetir en clas
-        label.setText(factura.asunto);
+        vista.año.setValue(factura.fecha.año);
+        vista.mes.setValue(factura.fecha.mes);
+        vista.dia.setValue(factura.fecha.dia);
+        vista.empresas.setSelectedItem(factura.tipo);
+        vista.jTextField1.setText(factura.asunto);
+        vista.cantidad.setText(factura.cantidad+"");
         //repetir en clas
 
 

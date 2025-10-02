@@ -21,6 +21,6 @@ public class Fecha {
 
     @Override
     public String toString(){
-        return dia+"-"+mes+"-"+año+"-";
+        return dia+"-"+mes+"-"+año;
     }
 }

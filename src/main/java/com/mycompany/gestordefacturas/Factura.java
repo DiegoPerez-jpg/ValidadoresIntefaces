@@ -13,11 +13,11 @@ public class Factura {
     }
 
     public static Factura create(Object asunto, Object cantidad, Fecha fecha,Object tipo){
-        return new Factura((String)asunto,(int)cantidad,fecha,(String)tipo);
+        return new Factura((String)asunto,Integer.parseInt((String)cantidad),fecha,(String)tipo);
     }
 
     @Override
     public String toString(){
-        return asunto + ":" + tipo + ":" + asunto + ":" + cantidad + ":";
+        return asunto + ":" + tipo + ":" + cantidad + ":" + fecha;
     }
 }
